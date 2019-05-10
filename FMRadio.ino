@@ -1,14 +1,44 @@
+/*
+ * skowro.net https://github.com/pskowronek/ 
+ * heavily based on:
+ */
+
     /////////////////////////////////////////////////////////////////
    //                 Arduino FM Radio Project                    //
   //       Get the latest version of the code here:              //
  //     📥 http://educ8s.tv/arduino-fm-radio-project            //
 /////////////////////////////////////////////////////////////////
 
+
 #include <TEA5767N.h>  //https://github.com/mroger/TEA5767
 #include <LCD5110_Graph.h> //http://www.rinkydinkelectronics.com/library.php?id=48
 
 LCD5110 lcd(8,9,10,12,11);
 TEA5767N radio = TEA5767N();
+
+// Analog PIN number to read analog value from to set the frequency
+const int FREQ_PIN = A0;
+// Digial PIN number to control LCD backlight
+const int BACKLIGHT_PIN = 3;
+// Freq range: 87.5 MHz to 108.00 MHz (x10 for sake of mapping)
+const int FREQ_START = 875;
+const int FREQ_END = 1080;
+// Freq potentiometer range - if its rotation range is 100%, then 0-1023, otherwise adjust accordingly
+const int FREQ_POTENTIOMETER_START = 0;
+const int FREQ_POTENTIOMETER_END = 820;
+
+// Freq init
+const float FREQ_INIT = 87.5;
+// delay between fresh of freq readings and LCD refresh (in ms)
+const int REFRESH_DELAY = 10;
+// startup delay / splash screen (in ms)
+const int SPLASHSCREEN_TIME = 1000;
+// Update receive details every n-th interation
+const int UPDATE_SCREEN_EVERY = 1000 / (5*REFRESH_DELAY);
+// A default backlight intensity
+const int DEFAULT_BACKLIGHT_INTENSITY = 0;
+// A number of readings of frequency potentiometer to avarage from
+const int NUMBER_OF_READINGS_FOR_AVG = 5;
 
 extern unsigned char BigNumbers[];
 extern unsigned char TinyFont[];
@@ -20,116 +50,147 @@ extern uint8_t signal3[];
 extern uint8_t signal2[];
 extern uint8_t signal1[];
 
-int analogPin = 0;
-int val = 0; 
-int frequencyInt = 0;
-float frequency = 0;
-float previousFrequency = 0;
-int signalStrength = 0;
+// The list of most used frequencies (radio stations) to ideally tune-in + display its name
+float SUGGESTED_FREQS[] = { 99.4, 101.6, 102, 102.9 };
+String SUGGESTED_FREQS_NAMES[] = { "RADIO TROJKA", "RADIO KRAKOW", "RADIO DWOJKA", "RADIO TOK FM" };
+// The threshold to say when to ideally adjust to one of suggested freqs
+float SUGGESTED_THRESHOLD = 0.2;
 
-void setup() 
-{
-  radio.setMonoReception();
-  radio.setStereoNoiseCancellingOn();
+float currentFrequency = 0;
+int detailsUpdateCounter = UPDATE_SCREEN_EVERY;
+int backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
+
+
+void setup() {
+  pinMode(FREQ_PIN, INPUT);
+  pinMode(BACKLIGHT_PIN, OUTPUT);
+  analogWrite(BACKLIGHT_PIN, backlightIntensity);
+  
+  radio.mute();
+  radio.setSoftMuteOn();
+  // radio.setStereoNoiseCancellingOn();
+  radio.setMonoReception(); // comment out for stereo
+  radio.selectFrequency(FREQ_INIT);
+  
   initScreen();
   showSplashScreen();
-  Serial.begin(9600);
+  delay(SPLASHSCREEN_TIME);
+  lcd.clrScr();
+  lcd.update();
+  currentFrequency = radio.readFrequencyInMHz();
 }
  
 void loop() {
-  
-  for(int i;i<30;i++)
-  {
-     val = val + analogRead(analogPin); 
-     delay(1);
+  bool freqAdjustement = adjustFrequency();  
+  updateScreen();
+  if (!freqAdjustement) {
+      delay(REFRESH_DELAY);
   }
-  
-  val = val/30;
-  frequencyInt = map(val, 2, 1014, 8700, 10700); //Analog value to frequency from 87.0 MHz to 107.00 MHz 
-  float frequency = frequencyInt/100.0f;
-
-  if(frequency - previousFrequency >= 0.1f || previousFrequency - frequency >= 0.1f)
-  {
-    lcd.clrScr();
-    radio.selectFrequency(frequency);
-    printSignalStrength();
-    printStereo();
-    printFrequency(frequency);
-    previousFrequency = frequency;    
-  }
-  
-  lcd.clrScr();
-  printSignalStrength();
-  printStereo();
-  printFrequency(frequency);
-  delay(50); 
-  val = 0;  
 }
 
-void initScreen()
-{
+void initScreen() {
   lcd.InitLCD();
   lcd.setFont(BigNumbers);
   lcd.clrScr();
 }
 
-void showSplashScreen()
-{
-  lcd.drawBitmap(0, 0, splash, 84, 48);
-  lcd.update();  
-  delay(3000);
-  lcd.clrScr();
+void updateScreen() {
+  analogWrite(BACKLIGHT_PIN, backlightIntensity);
+  updateBacklight();
+  
+  if (detailsUpdateCounter >= UPDATE_SCREEN_EVERY) {
+      printSignalStrength();
+      printStereo();
+      detailsUpdateCounter = 0;
+  } else {
+      detailsUpdateCounter++;
+  }
+  printFrequency();
   lcd.update();
 }
 
-void printFrequency(float frequency)
-{
-  String frequencyString = String(frequency,1);
-  if(frequencyString.length() == 4)
-  {
-    lcd.setFont(BigNumbers);
-    lcd.print(frequencyString,14,12);
-    lcd.update();
-  }
-  else
-  {
-    lcd.setFont(BigNumbers);
-    lcd.print(frequencyString,0,12);
-    lcd.update();
-  }
+void updateBacklight() {
+   if (backlightIntensity < 255) {
+      backlightIntensity++;
+   }
 }
-void printStereo()
-{
-    boolean isStereo = radio.isStereo();
-     if(isStereo)
-    {
-      lcd.setFont(TinyFont);
-      lcd.print("STEREO",55,2);
+
+void showSplashScreen() {
+  lcd.drawBitmap(0, 0, splash, 84, 48);
+  lcd.update();  
+}
+
+bool adjustFrequency() {  
+  bool result = false;
+  int val = 0; 
+  
+  for (int i = 0; i < NUMBER_OF_READINGS_FOR_AVG; i++) {
+     val = val + analogRead(FREQ_PIN); 
+     delay(1);
+  }
+  val = val / NUMBER_OF_READINGS_FOR_AVG; // avg of readings  
+  int frequencyToSetInt = map(val, FREQ_POTENTIOMETER_START, FREQ_POTENTIOMETER_END, FREQ_START, FREQ_END); // map analog value to freq range
+  float frequencyToSet = frequencyToSetInt / 10.0f;
+
+  if (abs(frequencyToSet - currentFrequency) >= 0.01f) {
+    if (frequencyToSet >= 100 && currentFrequency < 100 ||
+        currentFrequency >= 100 && frequencyToSet < 100) {
+        lcd.clrScr(); // since this is kinda slow, do this only if a number of digits changed,
+                      // 'cuz normally, any updated digit clears its background so full clrscr isn't necessary
     }
+    radio.selectFrequency(tuneIn(frequencyToSet));
+    radio.turnTheSoundBackOn();
+    currentFrequency = frequencyToSet;
+    detailsUpdateCounter = UPDATE_SCREEN_EVERY;
+    backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
+    result = true;
+  }
+  return result;
 }
 
-void printSignalStrength()
-{
-  signalStrength = radio.getSignalLevel();
+float tuneIn(float freq) {
+  int arraySize = sizeof(SUGGESTED_FREQS) / sizeof(SUGGESTED_FREQS[0]);
+  lcd.setFont(TinyFont);
+  for (int i = 0; i < arraySize; i++) {
+      float suggestedFreq = SUGGESTED_FREQS[i];
+      
+      if (abs(suggestedFreq - freq) <= SUGGESTED_THRESHOLD) {
+          lcd.print("><", 30, 2);
+          lcd.print(SUGGESTED_FREQS_NAMES[i], 10, 37);
+          lcd.update();
+          return suggestedFreq;
+      }
+  }
+  lcd.print("  ", 30, 2);           // reset
+  lcd.print("                      ", 10, 37); // reset
+  lcd.update();
+  return freq;  
+}
+
+void printFrequency() {
+  String frequencyString = String(currentFrequency, 1);
+  lcd.setFont(BigNumbers);
+  lcd.print(frequencyString, frequencyString.length() <= 4 ? 14 : 0, 12);
+}
+
+void printStereo() {
+  boolean isStereo = radio.isStereo();
+  lcd.setFont(TinyFont);
+  lcd.print(isStereo ? "STEREO" : "      ", 55, 2);
+}
+
+void printSignalStrength() {
+  int signalStrength = radio.getSignalLevel();
   String signalStrenthString = String(signalStrength);
-  if(signalStrength >=15)
-  {
-    lcd.drawBitmap(1, 1, signal5, 17 , 6);
-  }else if(signalStrength >=11 && signalStrength <15)
-  {
-    lcd.drawBitmap(1, 1, signal4, 17 , 6);
-  }
-  else if(signalStrength >=9 && signalStrength <11)
-  {
-    lcd.drawBitmap(1, 1, signal3, 17 , 6);
-  }
-   else if(signalStrength >=7 && signalStrength <9)
-  {
-    lcd.drawBitmap(1, 1, signal2, 17 , 6);
-  }
-   else if(signalStrength <7)
-  {
-    lcd.drawBitmap(1, 1, signal1, 17 , 6);
+  if (signalStrength >= 15) {
+    lcd.drawBitmap(1, 1, signal5, 17, 6);
+  } else if (signalStrength >= 11 && signalStrength < 15) {
+    lcd.drawBitmap(1, 1, signal4, 17, 6);
+  } else if (signalStrength >= 9 && signalStrength < 11) {
+    lcd.drawBitmap(1, 1, signal3, 17, 6);
+  } else if (signalStrength >= 7 && signalStrength < 9) {
+    lcd.drawBitmap(1, 1, signal2, 17, 6);
+  } else if (signalStrength < 7) {
+    lcd.drawBitmap(1, 1, signal1, 17, 6);
   }
 }
-
