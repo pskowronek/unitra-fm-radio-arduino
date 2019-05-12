@@ -18,15 +18,17 @@ TEA5767N radio = TEA5767N();
 
 // Analog PIN number to read analog value from to set the frequency
 const int FREQ_PIN = A0;
+// Analog PIN number to read the modes: manual freq adjustments, or predefined ones 
+const int MODE_PIN = A1;
+
 // Digial PIN number to control LCD backlight
 const int BACKLIGHT_PIN = 3;
-// Analog PIN number to read the modes: manual freq adjustements, or predefined ones 
-const int MODE_PIN = A1;
 
 // Freq range: 87.5 MHz to 108.00 MHz (x10 for sake of mapping)
 const int FREQ_START = 875;
 const int FREQ_END = 1080;
-// Freq potentiometer range - if its rotation range is 100%, then 0-1023, otherwise adjust accordingly
+// Freq potentiometer range - if its physical rotation range is 100%, then use 0-1023,
+// otherwise adjust accordingly max out to what is possible (due to mechanical constraints of old radio mechanism for instance)
 const int FREQ_POTENTIOMETER_START = 0;
 const int FREQ_POTENTIOMETER_END = 820;
 
@@ -40,7 +42,7 @@ const int SPLASHSCREEN_TIME = 1000;
 const int UPDATE_SCREEN_EVERY = 1000 / (5*REFRESH_DELAY);
 // A default backlight intensity
 const int DEFAULT_BACKLIGHT_INTENSITY = 0;
-// A number of readings of frequency potentiometer to avarage from
+// A number of readings of frequency potentiometer or mode pin-out to avarage from
 const int NUMBER_OF_READINGS_FOR_AVG = 5;
 
 extern unsigned char BigNumbers[];
@@ -61,20 +63,22 @@ const float SUGGESTED_THRESHOLD = 0.2;
 
 // The list of stations for quick access done by rotary switch (where first state is manual
 // adjustment and 2nd, 3rd and 4th states tune to given indecies from SUGGESTED_FREQS above).
-// To read the state a PIN FREQ_PIN - for each state the following resistors/voltages are designated:
-// 1st (manual): 0ohm/0V i.e. connected to negative
-// 2nd - 1kohm/?V? - first station index
-// 3nd - 100ohm/?V? - first station index
-// 4th - 10ohm/?V? - first station index
-const int MAX_PREDEFINED_FREQS = 3;
-const int PREDEFINED_FREQS_IDX[MAX_PREDEFINED_FREQS] = { 0, 2, 3 };
-// Ballpark value for each state
-const int PREDEFINED_MODE_VALUES[MAX_PREDEFINED_FREQS + 1] = { 0, 100, 500, 900 };
-// The % of the values above to still match the modes
-const float PREDEFINED_MODE_APPROX = 0.1; // 10%
+// To read the state a PIN FREQ_PIN - for each state the following resistor ladder readins are designated:
+// 1st mode (manual): 0ohm value reading i.e. connected to negative
+// 2nd mode - for 1*1k ohm - first station index
+// 3nd mode - for 2*1k ohm - second station index
+// 4th mode - for 3*1k ohm - third station index
+const int MAX_PREDEFINED_FREQS = 3; // the number of states besides the manual one
+const int PREDEFINED_FREQS_IDX[MAX_PREDEFINED_FREQS] = { 0, 2, 3 }; // idx of SUGGESTED_FREQS
+// Ballpark values for each state mode
+const int PREDEFINED_MODE_VALUES[MAX_PREDEFINED_FREQS + 1] = { 0, 430, 870, 1000 }; // readings values of resitors ladder
+// The % of the values above to still match the given mode
+const float PREDEFINED_MODE_APPROX = 100; // +/- this value
 
 // the mode we are in (0 - manual, 1 - 1st station and so on)
 int mode = 0;
+// previous mode
+int previousMode = -1;
 
 float currentFrequency = 0;
 int detailsUpdateCounter = UPDATE_SCREEN_EVERY;
@@ -99,22 +103,23 @@ void setup() {
   lcd.clrScr();
   lcd.update();
   currentFrequency = radio.readFrequencyInMHz();
-
   mode = readMode();
 }
  
 void loop() {
   if (mode == 0) {
-    bool freqAdjustement = adjustFrequency();  
-    updateScreen();
-    if (!freqAdjustement) {
-      delay(REFRESH_DELAY);
-    }
+      bool freqAdjustement = adjustFrequency();  
+      updateScreen();
+      if (!freqAdjustement) {
+          delay(REFRESH_DELAY);
+      }
   } else {
-    setFrequencyByMode(mode);
-    updateScreen();
-    delay(REFRESH_DELAY);
+      setFrequencyByMode(mode);
+      updateScreen();
+      delay(REFRESH_DELAY);
   }
+  previousMode = mode;
+  mode = readMode();
 }
 
 void initScreen() {
@@ -128,11 +133,11 @@ void updateScreen() {
   updateBacklight();
   
   if (detailsUpdateCounter >= UPDATE_SCREEN_EVERY) {
-      printSignalStrength();
-      printStereo();
-      detailsUpdateCounter = 0;
+       printSignalStrength();
+       printStereo();
+       detailsUpdateCounter = 0;
   } else {
-      detailsUpdateCounter++;
+       detailsUpdateCounter++;
   }
   printFrequency();
   lcd.update();
@@ -140,7 +145,7 @@ void updateScreen() {
 
 void updateBacklight() {
    if (backlightIntensity < 255) {
-      backlightIntensity++;
+       backlightIntensity++;
    }
 }
 
@@ -150,31 +155,35 @@ void showSplashScreen() {
 }
 
 void setFrequencyByMode(int mode) {
-  float frequencyToSet = tuneIn(SUGGESTED_FREQS[PREDEFINED_FREQS_IDX[mode]]);
-  radio.selectFrequency(frequencyToSet);
-  currentFrequency = frequencyToSet;
-  radio.turnTheSoundBackOn();
-  detailsUpdateCounter = UPDATE_SCREEN_EVERY;
-  backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
+  if (previousMode != mode) {
+      float frequencyToSet = tuneIn(SUGGESTED_FREQS[PREDEFINED_FREQS_IDX[mode - 1]]);
+      radio.selectFrequency(frequencyToSet);
+      currentFrequency = frequencyToSet;
+      radio.turnTheSoundBackOn();
+      detailsUpdateCounter = UPDATE_SCREEN_EVERY;
+      backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
+  }
 }
 
 int readMode() {
   int val = 0; 
   for (int i = 0; i < NUMBER_OF_READINGS_FOR_AVG; i++) {
-    val = val + analogRead(MODE_PIN); 
-    delay(1);
+      val = val + analogRead(MODE_PIN); 
+      delay(1);
   }
   val = val / NUMBER_OF_READINGS_FOR_AVG; // avg of readings
-  float maxVal = val + val*PREDEFINED_MODE_APPROX;
-  float minVal = val - val*PREDEFINED_MODE_APPROX;
+
+
+  float maxVal = val + PREDEFINED_MODE_APPROX;
+  float minVal = val - PREDEFINED_MODE_APPROX;
   if (minVal < 0) {
-    minVal = 0;
+      minVal = 0;
   }
   
   for (int i = 0; i <= MAX_PREDEFINED_FREQS; i++) {
-    if (PREDEFINED_MODE_VALUES[i] >= minVal && PREDEFINED_MODE_VALUES[i] <= maxVal) {
-      return i;
-    }
+      if (PREDEFINED_MODE_VALUES[i] >= minVal && PREDEFINED_MODE_VALUES[i] <= maxVal) {
+          return i;
+      }
   }
   return 0;
 }
@@ -184,25 +193,31 @@ bool adjustFrequency() {
   int val = 0; 
   
   for (int i = 0; i < NUMBER_OF_READINGS_FOR_AVG; i++) {
-     val = val + analogRead(FREQ_PIN); 
-     delay(1);
+      val = val + analogRead(FREQ_PIN); 
+      delay(1);
   }
   val = val / NUMBER_OF_READINGS_FOR_AVG; // avg of readings  
   int frequencyToSetInt = map(val, FREQ_POTENTIOMETER_START, FREQ_POTENTIOMETER_END, FREQ_START, FREQ_END); // map analog value to freq range
   float frequencyToSet = frequencyToSetInt / 10.0f;
 
-  if (abs(frequencyToSet - currentFrequency) >= 0.01f) {
-    if (frequencyToSet >= 100 && currentFrequency < 100 ||
-        currentFrequency >= 100 && frequencyToSet < 100) {
-        lcd.clrScr(); // since this is kinda slow, do this only if a number of digits changed,
-                      // 'cuz normally, any updated digit clears its background so full clrscr isn't necessary
-    }
-    radio.selectFrequency(tuneIn(frequencyToSet));
-    radio.turnTheSoundBackOn();
-    currentFrequency = frequencyToSet;
-    detailsUpdateCounter = UPDATE_SCREEN_EVERY;
-    backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
-    result = true;
+  if (abs(frequencyToSet - currentFrequency) > 0.01f) {
+      float frequencyTunedIn = tuneIn(frequencyToSet);
+      // get radio's frequency (to ensure we work correctly with artificially tuned-in suggested radios
+      float realFreq = radio.readFrequencyInMHz();
+      // only refresh sceen or light LCD up if necessary (if outside of suggested freq threshold)
+      if (abs(frequencyTunedIn != realFreq) > 0.01f) {
+          if (frequencyToSet >= 100 && currentFrequency < 100 ||
+              currentFrequency >= 100 && frequencyToSet < 100) {
+              lcd.clrScr(); // since this is kinda slow, do this only if a number of digits changed,
+                            // 'cuz normally any updated digit clears its background so full clrscr isn't necessary
+          }
+          radio.selectFrequency(frequencyTunedIn);
+          radio.turnTheSoundBackOn();
+          detailsUpdateCounter = UPDATE_SCREEN_EVERY;
+          backlightIntensity = DEFAULT_BACKLIGHT_INTENSITY;
+          currentFrequency = frequencyToSet;
+      }
+      result = true;
   }
   return result;
 }
@@ -242,14 +257,14 @@ void printSignalStrength() {
   int signalStrength = radio.getSignalLevel();
   String signalStrenthString = String(signalStrength);
   if (signalStrength >= 15) {
-    lcd.drawBitmap(1, 1, signal5, 17, 6);
+      lcd.drawBitmap(1, 1, signal5, 17, 6);
   } else if (signalStrength >= 11 && signalStrength < 15) {
-    lcd.drawBitmap(1, 1, signal4, 17, 6);
+      lcd.drawBitmap(1, 1, signal4, 17, 6);
   } else if (signalStrength >= 9 && signalStrength < 11) {
-    lcd.drawBitmap(1, 1, signal3, 17, 6);
+      lcd.drawBitmap(1, 1, signal3, 17, 6);
   } else if (signalStrength >= 7 && signalStrength < 9) {
-    lcd.drawBitmap(1, 1, signal2, 17, 6);
+      lcd.drawBitmap(1, 1, signal2, 17, 6);
   } else if (signalStrength < 7) {
-    lcd.drawBitmap(1, 1, signal1, 17, 6);
+      lcd.drawBitmap(1, 1, signal1, 17, 6);
   }
 }
