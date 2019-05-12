@@ -39,7 +39,7 @@ const int REFRESH_DELAY = 10;
 // startup delay / splash screen (in ms)
 const int SPLASHSCREEN_TIME = 1000;
 // Update receive details every n-th interation
-const int UPDATE_SCREEN_EVERY = 1000 / (5*REFRESH_DELAY);
+const int UPDATE_SCREEN_EVERY = 5000 / (5*REFRESH_DELAY);
 // A default backlight intensity
 const int DEFAULT_BACKLIGHT_INTENSITY = 0;
 // A number of readings of frequency potentiometer or mode pin-out to avarage from
@@ -93,9 +93,10 @@ void setup() {
   
   radio.mute();
   radio.setSoftMuteOn();
-  // radio.setStereoNoiseCancellingOn();
-  radio.setMonoReception(); // comment out for stereo
+  radio.setStereoNoiseCancellingOn();
+  radio.setHighCutControlOn();
   radio.selectFrequency(FREQ_INIT);
+  radio.setMonoReception(); // comment out for stereo
   
   initScreen();
   showSplashScreen();
@@ -131,7 +132,7 @@ void initScreen() {
 void updateScreen() {
   analogWrite(BACKLIGHT_PIN, backlightIntensity);
   updateBacklight();
-  
+
   if (detailsUpdateCounter >= UPDATE_SCREEN_EVERY) {
        printSignalStrength();
        printStereo();
@@ -156,6 +157,7 @@ void showSplashScreen() {
 
 void setFrequencyByMode(int mode) {
   if (previousMode != mode) {
+      lcd.clrScr();
       float frequencyToSet = tuneIn(SUGGESTED_FREQS[PREDEFINED_FREQS_IDX[mode - 1]]);
       radio.selectFrequency(frequencyToSet);
       currentFrequency = frequencyToSet;
@@ -200,14 +202,16 @@ bool adjustFrequency() {
   int frequencyToSetInt = map(val, FREQ_POTENTIOMETER_START, FREQ_POTENTIOMETER_END, FREQ_START, FREQ_END); // map analog value to freq range
   float frequencyToSet = frequencyToSetInt / 10.0f;
 
-  if (abs(frequencyToSet - currentFrequency) > 0.01f) {
+  if (abs(frequencyToSet - currentFrequency) > 0.1f) {
       float frequencyTunedIn = tuneIn(frequencyToSet);
       // get radio's frequency (to ensure we work correctly with artificially tuned-in suggested radios
       float realFreq = radio.readFrequencyInMHz();
       // only refresh sceen or light LCD up if necessary (if outside of suggested freq threshold)
       if (abs(frequencyTunedIn != realFreq) > 0.01f) {
           if (frequencyToSet >= 100 && currentFrequency < 100 ||
-              currentFrequency >= 100 && frequencyToSet < 100) {
+              currentFrequency >= 100 && frequencyToSet < 100 || 
+              previousMode != mode) {
+
               lcd.clrScr(); // since this is kinda slow, do this only if a number of digits changed,
                             // 'cuz normally any updated digit clears its background so full clrscr isn't necessary
           }
