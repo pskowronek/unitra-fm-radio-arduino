@@ -1,6 +1,7 @@
 /*
- * skowro.net https://github.com/pskowronek/ 
- * heavily based on:
+ * skowro.net https://github.com/pskowronek/unitra-fm-radio-arduino
+ * Any changes introduced are under License Apache 2.0 unless the original license states different.
+ * The project evolved from:
  */
 
     /////////////////////////////////////////////////////////////////
