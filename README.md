@@ -67,8 +67,8 @@ Here is the video how this revamped radio works now:
 - [PAM8403 amp (I use only one channel, since radio has only one speaker)](https://www.aliexpress.com/item/PAM8403-Super-Mini-Digital-Amplifier-Board-2-3W-Class-D-Digital-2-5V-To-5V-Power/1822706737.html)
 - [Rotary switch 4 position](https://botland.com.pl/en/przelaczniik-obrotowe/6163-rotary-switch-4-positions-2-circuits-30mm.html)
 - [Rotary potentiometer, anything from 1k to 10k ohm will do](https://botland.com.pl/en/potentiometers/2168-potencjometr-precyzyjny-wieloobrotowy-20k-10-obr.html)
-- [LDO 5V LM1117VT](https://botland.com.pl/en/voltage-regulators/791-linear-voltage-regulator-ldo-5v-lm1117t-tht-to220.html)
-- 1x resistor 220ohm :)
+- [LDO 5V LM1117](https://botland.com.pl/en/voltage-regulators/791-linear-voltage-regulator-ldo-5v-lm1117t-tht-to220.html)
+- 4x resistors 220ohm
 
 ## Circuit
 
@@ -77,14 +77,17 @@ add features I used prototyping circuit boards and everything was connected usin
 jumpers than on the arduino and modules <sic!>) and a bit of hot glue :) 
 
 The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino-fm-radio-project) project with some additional
-wiring to control LCD brightness plus rotary switch to quickly adjust to predefined stations.
+wiring to:
+- control LCD brightness - connect 8-LED of LCD to digital 3 pin
+- to quickly adjust to predefined stations using rotary switch - connect A1 to main pin of rotary switch, between position pins solder
+a resistor (220ohm) to build a voltage ladder, connect the first pin to negative, and the last one to positive.
 
-The final wiring is gonna be provided .... soon :) TBD
-
+To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner - take a look at datasheet and simply connect GND to negative, INPUT connect
+thru the switch embeded into potentiometer, and finally use OUTPUT to power all the stuff.
 
 ## License
 
-Since this project is based on this [project](http://educ8s.tv/arduino-fm-radio-project), the original licenses still apply.
+Since this project is based on this [project](http://educ8s.tv/arduino-fm-radio-project) the original licenses still apply.
 The modifications and enhancements are being done under Apache 2 license unless the original license states otherwise.
 
 ## Authors
