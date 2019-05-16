@@ -59,7 +59,9 @@ More photos of the assembled Radio running this project are [here](https://pskow
 Here is the video how this revamped radio works now:
 [![Video of Unitra ANIA running Arduino](https://pskowronek.github.io/unitra-fm-radio-arduino/www/video/still.jpg)](https://youtu.be/vbuSLiFZ-MU)
 
-## Hardware
+## Requirements
+
+### Hardware
 
 - Arduino Nano or similar
 - [TEA5767 FM module](https://www.aliexpress.com/item/TEA5767-FM-Stereo-Radio-Module-for-76-108MHZ-With-Free-Cable-Antenna/32735797434.html)
@@ -69,12 +71,19 @@ Here is the video how this revamped radio works now:
 - [Rotary potentiometer, anything from 1k to 10k ohm will do](https://botland.com.pl/en/potentiometers/2168-potencjometr-precyzyjny-wieloobrotowy-20k-10-obr.html)
 - [LDO 5V LM1117](https://botland.com.pl/en/voltage-regulators/791-linear-voltage-regulator-ldo-5v-lm1117t-tht-to220.html)
 - 4x resistors 220ohm
+- a lot of jumper wires :)
+
+### Software
+
+- [Arduino IDE](https://www.arduino.cc/en/Main/Software)
+- [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48)
+- [Radio FM TEA5767 library](https://github.com/mroger/TEA5767)
 
 ## Circuit
 
 Of course to do it right I should have designed a custom circuit board, but since I wanted to play around and have some freedom to
-add features I used prototyping circuit boards and everything was connected using jumpers (I guess I spent more on those
-jumpers than on the arduino and modules <sic!>) and a bit of hot glue :) 
+add features I used prototyping circuit boards and everything was connected using jumpers (I guess I spent more on 'emt
+than on the arduino and modules <sic!>) and a bit of hot glue :) 
 
 The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino-fm-radio-project) project with some additional
 wiring to:
