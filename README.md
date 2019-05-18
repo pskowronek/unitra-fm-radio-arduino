@@ -10,13 +10,13 @@ _Language versions:_\
 ## A background 
 Let's start with a background information. [Unitra ANIA R-612](http://www.oldradio.pl/karta.php?numer=926) is kinda old FM 'tourist' Polish mono radio produced in communist times.
 It was relatively of good quality both as it comes to materials and electronics circuits inside - as it received stations very good and
-the sound quality was good. From visual aspect of the design was also nice. It could be powered with 220V (now we have 230V, but it is not a problem)
-and with 5x AA. It could receive LF (D), MF (Ś), HF (K) and FM aka VHF but in [OIRT band](https://en.wikipedia.org/wiki/International_Radio_and_Television_Organisation) 65.8-74.0 MHz.
-As it might be suspected FM / VHF was most popular, but in late 90s all the stations were forced to move to CCIR band - 87.5-108MHz.
-Finally we moved away from eastern ideas of doing things different and joined the rest of the Europe. But, this required to re-tune the radios
+the sound quality was good. From a visual aspect of the design it was also quite nice. It could be powered with 220V/230V
+and alternatively with 5x AA. It could receive LF (D), MF (Ś), HF (K) and FM aka VHF but in [OIRT band](https://en.wikipedia.org/wiki/International_Radio_and_Television_Organisation) 65.8-74.0 MHz.
+As it might be suspected FM/VHF was most popular, but in late 90s all the stations were forced to move to CCIR band - 87.5-108MHz.
+Finally we moved away from eastern ideas of doing things different and joined the rest of the Europe. But, this required to re-tune radios
 to use so called upper band. Three years ago when there was a need to have a radio in a bathroom I came up with this Unitra piece
 but I had to re-tune it and succeeded ... only partially - the radio covered only 2/3rds of the current band and the reception was not so
-much ideal (remember, it is in the bathroom - no windows, waves have problems). Let's end up here.
+much ideal (remember - it is in a bathroom - no windows and a lot of pipes - waves may have problems). Let's end up here.
 
 ## The idea
 
@@ -27,24 +27,24 @@ I started the project to revamp the radio with Arduino + TEA5767 module + Nokia 
 ## The project
 
 ### The Aim
-The aim was to keep the orginal look&feel of the radio as much as possible. So, I kept the volume potentiometer working also as power-on switch.
-The analog feeling of tunning along with freq indicator moving had to be kept working (eventhough the scale is not relevant anymore due to OIRT -> CCIR transition).
+The aim was to keep the orginal look&feel of the radio as much as possible. So, I kept the volume potentiometer working also as a power-on switch.
+The analog feeling of tunning along with freqeuncy indicator moving up&down had to be kept working (eventhough the scale is not relevant anymore due to OIRT -> CCIR transition).
 I could use rotary encoder for this but I felt that co-ordination with analog indicator may get lost so I decided to use rotary potentiometer
-which of course is not so accurate for fine tunning plus the influence of temperature and humidity (wire connecting
-analog indicator) doesn't help. But, it gives the oldschool feedback, yo! To avoid madness in the household I decided to convert the band switch
-to do something usefull - to tune into 3 preconfigured frequencies, only the first position allows for free tunning.
+which of course is not so accurate for fine tunning, plus the influence of temperature and humidity (wire connecting
+analog indicator) doesn't help. But, it still gives the oldschool feedback, yo! To avoid madness in the household I decided to convert the band switch
+to do something usefull i.e. to tune into 3 preconfigured frequencies, only the first position allows for free tunning.
 
 ### The Feedback
-To get any feedback what's the current frequency I decided to implant Nokia 5110 display, which was hidden under the scale.
+To get any feedback what's the current frequency I decided to implant Nokia 5110 display and which was hidden under the scale.
 Its illumination automatically fades out when tunning is over, so it doesn't destroy the look so much. The LCD may also display the name
-of the radio station, but since the FM module I used doesn't provide RDS readings, the radio station name is taken from
-the list of predefined stations, also this list is used to automatically fine-tune to exact frequency. The LCD display additionally
-displays the signal level and mono/stereo status.
+of the radio station, but since the FM module I used doesn't provide RDS readings the radio station name is taken from
+the list of predefined stations. This list is alsoe being used to automatically fine-tune to exact frequency.
+The LCD display additionally displays the signal level and mono/stereo status.
 
 ### The Power Source
-The radio is powered by 5x AA batteries consuming around 50mAh. Sadly, I didn't measure what was the original power consumption :/
+The radio is powered by 5x AA batteries consuming around ~56mA. Sadly, I didn't measure what was the original power consumption :/
 The circuit for 230V has been removed (you don't want that functionality in the bathroom, right?), eventhough it could be left as it was -
-the LDO could have been be easily connected to graetz bridge after transformer.
+the LDO could have been be easily connected to the existing graetz bridge after transformer.
 
 
 ## Photos
@@ -52,7 +52,7 @@ the LDO could have been be easily connected to graetz bridge after transformer.
 [![Assembled](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/07.jpg)](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio")
 
 
-More photos of the assembled Radio running this project are [here](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio and final result").
+More photos of the retrofitted radio running this project are [here](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio and final result").
 
 ## Video
 
@@ -82,22 +82,22 @@ Here is the video how this revamped radio works now:
 ## Circuit
 
 Of course to do it right I should have designed a custom circuit board, but since I wanted to play around and have some freedom to
-add features I used prototyping circuit boards and everything was connected using jumpers (I guess I spent more on 'emt
+add new features I used universal prototyping circuit boards and everything was connected using jumpers (I guess I spent more on them
 than on the arduino and modules <sic!>) and a bit of hot glue :) 
 
 The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino-fm-radio-project) project with some additional
-wiring to:
-- control LCD brightness - connect 8-LED of LCD to digital 3 pin
-- to quickly adjust to predefined stations using rotary switch - connect A1 to main pin of rotary switch, between position pins solder
-a resistor (220ohm) to build a voltage ladder, connect the first pin to negative, and the last one to positive.
+wirings to:
+- control LCD brightness - connect 8-LED pin of LCD to digital 3 pin of arduino
+- to quickly adjust to predefined stations using rotary switch - connect A1 to main pin of rotary switch and  between position pins solder
+resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive.
 
 To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner - take a look at datasheet and simply connect GND to negative, INPUT connect
-thru the switch embeded into potentiometer, and finally use OUTPUT to power all the stuff.
+thru the switch embeded into potentiometer and finally use OUTPUT to power all the stuff. To have stable 5V place 220uF capacitor between OUTPUT and GND.
 
 ## License
 
 Since this project is based on this [project](http://educ8s.tv/arduino-fm-radio-project) the original licenses still apply.
-The modifications and enhancements are being done under Apache 2 license unless the original license states otherwise.
+The modifications here and/or enhancements are being done under Apache 2 license unless the original license states otherwise.
 
 ## Authors
 
