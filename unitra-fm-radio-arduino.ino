@@ -29,9 +29,10 @@ const int BACKLIGHT_PIN = 3;
 const int FREQ_START = 875;
 const int FREQ_END = 1080;
 // Freq potentiometer range - if its physical rotation range is 100%, then use 0-1023,
-// otherwise adjust accordingly max out to what is possible (due to mechanical constraints of old radio mechanism for instance)
-const int FREQ_POTENTIOMETER_START = 0;
-const int FREQ_POTENTIOMETER_END = 820;
+// otherwise adjust accordingly to max out to what is possible (due to mechanical constraints of old radio mechanism for instance)
+// The values might differ when you change power source.
+const int FREQ_POTENTIOMETER_START = 85;
+const int FREQ_POTENTIOMETER_END = 775;
 
 // Freq init
 const float FREQ_INIT = 87.5;
@@ -72,7 +73,7 @@ const float SUGGESTED_THRESHOLD = 0.2;
 const int MAX_PREDEFINED_FREQS = 3; // the number of states besides the manual one
 const int PREDEFINED_FREQS_IDX[MAX_PREDEFINED_FREQS] = { 0, 2, 3 }; // idx of SUGGESTED_FREQS
 // Ballpark values for each state mode
-const int PREDEFINED_MODE_VALUES[MAX_PREDEFINED_FREQS + 1] = { 0, 430, 870, 1000 }; // readings values of resitors ladder
+const int PREDEFINED_MODE_VALUES[MAX_PREDEFINED_FREQS + 1] = { 0, 430, 770, 1000 }; // readings values of resitor ladder
 // The % of the values above to still match the given mode
 const float PREDEFINED_MODE_APPROX = 100; // +/- this value
 

@@ -76,8 +76,8 @@ Here is the video how this revamped radio works now:
 ### Software
 
 - [Arduino IDE](https://www.arduino.cc/en/Main/Software)
-- [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48)
-- [Radio FM TEA5767 library](https://github.com/mroger/TEA5767)
+- [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48) - import this library to your poject
+- [Radio FM TEA5767 library](https://github.com/mroger/TEA5767) - import this library to your poject
 
 ## Circuit
 
@@ -87,8 +87,8 @@ than on the arduino and modules <sic!>) and a bit of hot glue :)
 
 The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino-fm-radio-project) project with some additional
 wirings to:
-- control LCD brightness - connect 8-LED pin of LCD to digital 3 pin of arduino
-- to quickly adjust to predefined stations using rotary switch - connect A1 to main pin of rotary switch and  between position pins solder
+- control LCD brightness - connect 8-LED pin of LCD to digital pin D3 of arduino
+- to quickly adjust to predefined stations using rotary switch - connect arduino's analog pin A1 to main pin of rotary switch and  between position pins solder
 resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive.
 
 To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner - take a look at datasheet and simply connect GND to negative, INPUT connect
