@@ -36,12 +36,15 @@ const int FREQ_POTENTIOMETER_END = 775;
 
 // Freq init
 const float FREQ_INIT = 87.5;
-// delay between fresh of freq readings and LCD refresh (in ms)
+// delay between refresh of freq readings and LCD refresh (in ms)
 const int REFRESH_DELAY = 10;
 // startup delay / splash screen (in ms)
 const int SPLASHSCREEN_TIME = 1000;
+// Whether to peridically update signal level and stereo/mono on the screen 
+const bool SHOULD_UPDATE_PERIODICALLY = false; // I needed to set it to false for RDA5807m (I2C communication to get status interrupted the reception) :/
 // Update receive details every n-th interation
 const int UPDATE_SCREEN_EVERY = 5000 / (5*REFRESH_DELAY);
+
 // A default backlight intensity
 const int DEFAULT_BACKLIGHT_INTENSITY = 0;
 // A number of readings of frequency potentiometer or mode pin-out to avarage from
@@ -136,11 +139,12 @@ void updateScreen() {
   updateBacklight();
 
   if (detailsUpdateCounter >= UPDATE_SCREEN_EVERY) {
-       printSignalStrength();
-       printStereo();
+       printSignalDetails();
        detailsUpdateCounter = 0;
   } else {
-       detailsUpdateCounter++;
+       if (SHOULD_UPDATE_PERIODICALLY) {
+          detailsUpdateCounter++;
+       }
   }
   printFrequency();
   lcd.update();
@@ -253,14 +257,10 @@ void printFrequency() {
   lcd.print(frequencyString, frequencyString.length() <= 4 ? 14 : 0, 12);
 }
 
-void printStereo() {
-  boolean isStereo = radio.isStereo();
-  lcd.setFont(TinyFont);
-  lcd.print(isStereo ? "STEREO" : "      ", 55, 2);
-}
-
-void printSignalStrength() {
+void printSignalDetails() {
   int signalStrength = radio.getSignalLevel();
+  boolean isStereo = radio.isStereo();
+
   String signalStrenthString = String(signalStrength);
   if (signalStrength >= 15) {
       lcd.drawBitmap(1, 1, signal5, 17, 6);
@@ -273,4 +273,6 @@ void printSignalStrength() {
   } else if (signalStrength < 7) {
       lcd.drawBitmap(1, 1, signal1, 17, 6);
   }
+  lcd.setFont(TinyFont);
+  lcd.print(isStereo ? "STEREO" : "      ", 55, 2);
 }

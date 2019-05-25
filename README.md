@@ -5,7 +5,7 @@ _Language versions:_\
 [![FR](https://github.com/pskowronek/unitra-fm-radio-arduino/raw/master/www/flags/lang-FR.png)](https://translate.googleusercontent.com/translate_c?sl=en&tl=fr&u=https://github.com/pskowronek/unitra-fm-radio-arduino)
 [![ES](https://github.com/pskowronek/unitra-fm-radio-arduino/raw/master/www/flags/lang-ES.png)](https://translate.googleusercontent.com/translate_c?sl=en&tl=es&u=https://github.com/pskowronek/unitra-fm-radio-arduino)
 
-# Unitra ANIA R-612 FM Radio powered by Arduino & TEA5767 w/ Nokia 5110 display 
+# Unitra ANIA R-612 FM Radio powered by Arduino & FM module w/ Nokia 5110 display 
 
 ## A background 
 Let's start with a background information. [Unitra ANIA R-612](http://www.oldradio.pl/karta.php?numer=926) is kinda old FM 'tourist' Polish mono radio produced in communist times.
@@ -22,7 +22,7 @@ much ideal (remember - it is in a bathroom - no windows and a lot of pipes - wav
 
 The idea was to replace the old electronics with something from 21st century - there were some voices of electronics guys
 that new modules are much worse etc (no filtering of low gain stations) and I should try to re-tune one more time. But, I'm not really into analog electronics, so
-I started the project to revamp the radio with Arduino + TEA5767 module + Nokia 5110 display. And here it is - the revamped Unitra ANIA R-612.
+I started the project to revamp the radio with Arduino + TEA5767 or RDA5807m FM module + Nokia 5110 display. And here it is - the revamped Unitra ANIA R-612.
 
 ## The project
 
@@ -64,12 +64,23 @@ Here is the video how this revamped radio works now:
 ### Hardware
 
 - Arduino Nano or similar
-- [TEA5767 FM module](https://www.aliexpress.com/item/TEA5767-FM-Stereo-Radio-Module-for-76-108MHZ-With-Free-Cable-Antenna/32735797434.html)
+- [TEA5767 FM module](https://botland.com.pl/en/radio-modules/6639-radio-module-tea5767.html)
+  - there are integrated boards like [here](https://www.aliexpress.com/item/TEA5767-FM-Stereo-Radio-Module-for-76-108MHZ-With-Free-Cable-Antenna/32735797434.html) with headphone amp, sockets and some signal amplifier - no need to solder
+  - if you want to use TEA5767 directly then be careful about soldering
+  - apparently the integrated board above in comparison with RDA5807m (see below) it is able to pick up weaker stations due to signal amplification, however this causes interferences between stations
+  - no RDS support
+or
+- [RDA5807m FM module](http://www.aliexpress.com/af/RDA5807m.html)
+  - be careful about soldering and voltage (requires 3.3V - take power from Arduino 3.3V)
+  - has better performance than integrated board with TEA5767 - less inteferences from weaker stations
+  - can work in TEA5767 compatibility mode (one can still use the same library for both)
+  - looks like it has RDS support (but need to use non-TEA mode and different [library](https://github.com/mathertel/Radio)) TBD
 - [Nokia 5110 LCD display](https://www.aliexpress.com/item/High-Quality-8448-84x84-LCD-Module-blue-backlight-adapter-PCB-for-Nokia-5110-for-Arduino/32614334972.html)
-- [PAM8403 amp (I use only one channel, since radio has only one speaker)](https://www.aliexpress.com/item/PAM8403-Super-Mini-Digital-Amplifier-Board-2-3W-Class-D-Digital-2-5V-To-5V-Power/1822706737.html)
+- [PAM8403 amp (I use only one channel, since the radio has only one speaker)](https://www.aliexpress.com/item/PAM8403-Super-Mini-Digital-Amplifier-Board-2-3W-Class-D-Digital-2-5V-To-5V-Power/1822706737.html)
 - [Rotary switch 4 position](https://botland.com.pl/en/przelaczniik-obrotowe/6163-rotary-switch-4-positions-2-circuits-30mm.html)
 - [Rotary potentiometer, anything from 1k to 10k ohm will do](https://botland.com.pl/en/potentiometers/2168-potencjometr-precyzyjny-wieloobrotowy-20k-10-obr.html)
 - [LDO 5V LM1117](https://botland.com.pl/en/voltage-regulators/791-linear-voltage-regulator-ldo-5v-lm1117t-tht-to220.html)
+- 220uF capacitor - connect it to output of LDO
 - 4x resistors 220ohm
 - a lot of jumper wires :)
 
@@ -89,7 +100,8 @@ The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino
 wirings to:
 - control LCD brightness - connect 8-LED pin of LCD to digital pin D3 of arduino
 - to quickly adjust to predefined stations using rotary switch - connect arduino's analog pin A1 to main pin of rotary switch and  between position pins solder
-resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive.
+use resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive
+- in case of RDA5807m you must power it with 3.3V which you can take it directly from Arduino 3.3V PIN
 
 To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner - take a look at datasheet and simply connect GND to negative, INPUT connect
 thru the switch embeded into potentiometer and finally use OUTPUT to power all the stuff. To have stable 5V place 220uF capacitor between OUTPUT and GND.
