@@ -49,7 +49,7 @@ the LDO could have been be easily connected to the existing graetz bridge after 
 
 ## Photos
 
-[![Assembled](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/07.jpg)](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio")
+[![Assembled](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/09.jpg)](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio")
 
 
 More photos of the retrofitted radio running this project are [here](https://pskowronek.github.io/unitra-fm-radio-arduino/www/assembled/index.html "Photos of assembling the radio and final result").
