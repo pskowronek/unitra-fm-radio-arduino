@@ -67,9 +67,10 @@ Here is the video how this revamped radio works now:
 - [TEA5767 FM module](https://botland.com.pl/en/radio-modules/6639-radio-module-tea5767.html)
   - there are integrated boards like [here](https://www.aliexpress.com/item/TEA5767-FM-Stereo-Radio-Module-for-76-108MHZ-With-Free-Cable-Antenna/32735797434.html) with headphone amp, sockets and some signal amplifier - no need to solder
   - if you want to use TEA5767 directly then be careful about soldering
-  - apparently the integrated board above in comparison with RDA5807m (see below) it is able to pick up weaker stations due to signal amplification, however this causes interferences between stations
+  - apparently the integrated board above in comparison with RDA5807m (see below) is able to pick up weaker stations due to signal amplification, but this introduces a lot of interferences between stations
   - no RDS support
-or
+
+  or alternatively:
 - [RDA5807m FM module](http://www.aliexpress.com/af/RDA5807m.html)
   - be careful about soldering and voltage (requires 3.3V - take power from Arduino 3.3V)
   - has better performance than integrated board with TEA5767 - less inteferences from weaker stations
