@@ -39,8 +39,8 @@ const byte MODE_PIN = A1;
 const byte BACKLIGHT_PIN = 3;
 
 // Freq range: 87.5 MHz to 108.00 MHz (x10 for sake of mapping)
-const int FREQ_START = 8750;
-const int FREQ_END = 10800;
+const RADIO_FREQ FREQ_START = 8750;
+const RADIO_FREQ FREQ_END = 10800;
 // Freq potentiometer range - if its physical rotation range is 100%, then use 0-1023,
 // otherwise adjust accordingly to max out to what is possible (due to mechanical constraints of old radio mechanism for instance)
 // The values might differ when you change power source.
@@ -48,7 +48,7 @@ const int FREQ_POTENTIOMETER_START = 85;
 const int FREQ_POTENTIOMETER_END = 775;
 
 // Freq to set when starting (will be overriden by freq potentiometer reading).
-const uint16_t FREQ_INIT = 8750; // *100
+const RADIO_FREQ FREQ_INIT = 8750; // *100
 
 
 
@@ -74,7 +74,7 @@ const int UPDATE_SCREEN_EVERY = 5000 / (5*REFRESH_DELAY);
 const byte NUMBER_OF_READINGS_FOR_AVG = 5;
 
 // The list of most used frequencies (radio stations) to ideally tune-in + display its name
-const uint16_t SUGGESTED_FREQS[] = { 9940, 10160, 10200, 102900 };
+const RADIO_FREQ SUGGESTED_FREQS[] = { 9940, 10160, 10200, 102900 };
 const String SUGGESTED_FREQS_NAMES[] = { "RADIO TROJKA", "RADIO KRAKOW", "RADIO DWOJKA", "RADIO TOK FM" };
 // The threshold to say when to ideally adjust to one of suggested freqs
 const uint16_t SUGGESTED_THRESHOLD = 200;
@@ -111,7 +111,7 @@ byte mode = 0;
 // previous mode
 byte previousMode = -1;
 
-uint16_t currentFrequency = 0;
+RADIO_FREQ currentFrequency = 0;
 int detailsUpdateCounter = UPDATE_SCREEN_EVERY;
 byte backlightIntensity = SCREEN_FULL_BACKLIGHT_INTENSITY;
 String currentStationName = "";
@@ -128,9 +128,9 @@ void setup() {
   radio.setBandFrequency(FIX_BAND, FREQ_INIT);
   radio.setMono(true); // set to false for stereo
   #ifdef RDS
-    radio.setVolume(FIX_VOLUME);
-    radio.attachReceiveRDS(RDS_process);
-    rds.attachServicenNameCallback(DisplayServiceName);
+    //radio.setVolume(FIX_VOLUME);
+    //radio.attachReceiveRDS(RDS_process);
+    //rds.attachServicenNameCallback(DisplayServiceName);
   #endif
   
   initScreen();
@@ -138,6 +138,7 @@ void setup() {
   delay(SPLASHSCREEN_TIME);
   lcd.clrScr();
   lcd.update();
+  lcdDebug("1");
   currentFrequency = radio.getFrequency();
   mode = readMode();
 }
@@ -234,7 +235,8 @@ byte readMode() {
   return 0;
 }
 
-bool adjustFrequency() {  
+bool adjustFrequency() {
+  lcdDebug("2");
   bool result = false;
   int val = 0; 
   
@@ -243,14 +245,17 @@ bool adjustFrequency() {
       delay(1);
   }
   val = val / NUMBER_OF_READINGS_FOR_AVG; // avg of readings  
-  uint16_t frequencyToSet = map(val, FREQ_POTENTIOMETER_START, FREQ_POTENTIOMETER_END, FREQ_START, FREQ_END); // map analog value to freq range
+  RADIO_FREQ frequencyToSet = map(val, FREQ_POTENTIOMETER_START, FREQ_POTENTIOMETER_END, FREQ_START, FREQ_END); // map analog value to freq range
 
   if (abs(frequencyToSet - currentFrequency) > 9) {
-      uint16_t frequencyTunedIn = tuneIn(frequencyToSet);
+      RADIO_FREQ frequencyTunedIn = tuneIn(frequencyToSet);
       // get radio's frequency (to ensure we work correctly with artificially tuned-in suggested radios
-      uint16_t realFreq = radio.getFrequency();
+      lcdDebug("3");
+      RADIO_FREQ realFreq = radio.getFrequency();
       // only refresh sceen or light LCD up if necessary (if outside of suggested freq threshold)
+      lcdDebug("4");
       if (abs(frequencyTunedIn != realFreq) > 9) {
+          lcdDebug("5");
           if (frequencyToSet >= 10000 && currentFrequency < 10000 ||
               currentFrequency >= 10000 && frequencyToSet < 10000 || 
               previousMode != mode) {
@@ -263,17 +268,19 @@ bool adjustFrequency() {
           detailsUpdateCounter = UPDATE_SCREEN_EVERY;
           backlightIntensity = SCREEN_FULL_BACKLIGHT_INTENSITY;
           currentFrequency = frequencyToSet;
+          lcdDebug("6");
       }
       result = true;
   }
+  lcdDebug("7");
   return result;
 }
 
-uint16_t tuneIn(uint16_t freq) {
+RADIO_FREQ tuneIn(RADIO_FREQ freq) {
   byte arraySize = sizeof(SUGGESTED_FREQS) / sizeof(SUGGESTED_FREQS[0]);
   lcd.setFont(TinyFont);
   for (byte i = 0; i < arraySize; i++) {
-      uint16_t suggestedFreq = SUGGESTED_FREQS[i];
+      RADIO_FREQ suggestedFreq = SUGGESTED_FREQS[i];
       
       if (abs(suggestedFreq - freq) <= SUGGESTED_THRESHOLD) {
           lcd.print("><", 30, 2);
@@ -294,12 +301,13 @@ void printStationName(String name) {
 }
 
 void printFrequency() {
-  String frequencyString = String(float(currentFrequency) / 100, 1);
+  String frequencyString = "AA"; //String(float(currentFrequency) / 100, 1);
   lcd.setFont(BigNumbers);
   lcd.print(frequencyString, frequencyString.length() <= 4 ? 14 : 0, 12);
 }
 
 void printRcvDetails() {
+  return;
   RADIO_INFO info;
   radio.getRadioInfo(&info);
   boolean isStereo = info.stereo;
@@ -330,4 +338,10 @@ void RDS_process(uint16_t block1, uint16_t block2, uint16_t block3, uint16_t blo
 
 void DisplayServiceName(char *name) {
   currentStationName = String(name);
+}
+
+void lcdDebug(String text) {
+  lcd.setFont(TinyFont);
+  lcd.print(text, 55, 2);
+  lcd.update();
 }
