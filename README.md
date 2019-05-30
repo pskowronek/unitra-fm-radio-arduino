@@ -70,12 +70,12 @@ Here is the video how this revamped radio works now:
   - apparently the integrated board above in comparison with RDA5807m (see below) is able to pick up weaker stations due to signal amplification, but this introduces a lot of interferences between stations
   - no RDS support
 
-  or alternatively:
+  or alternatively (and I prefer this module):
 - [RDA5807m FM module](http://www.aliexpress.com/af/RDA5807m.html)
   - be careful about soldering and voltage (requires 3.3V - take power from Arduino 3.3V)
   - has better performance than integrated board with TEA5767 - less inteferences from weaker stations
-  - can work in TEA5767 compatibility mode (one can still use the same library for both)
-  - looks like it has RDS support (but need to use non-TEA mode and different [library](https://github.com/mathertel/Radio)) TBD
+  - can work in TEA5767 compatibility mode (see legacy [branch](https://github.com/pskowronek/unitra-fm-radio-arduino/tree/TEA5767_library))
+  - it has a nice RDS support
 - [Nokia 5110 LCD display](https://www.aliexpress.com/item/High-Quality-8448-84x84-LCD-Module-blue-backlight-adapter-PCB-for-Nokia-5110-for-Arduino/32614334972.html)
 - [PAM8403 amp (I use only one channel, since the radio has only one speaker)](https://www.aliexpress.com/item/PAM8403-Super-Mini-Digital-Amplifier-Board-2-3W-Class-D-Digital-2-5V-To-5V-Power/1822706737.html)
 - [Rotary switch 4 position](https://botland.com.pl/en/przelaczniik-obrotowe/6163-rotary-switch-4-positions-2-circuits-30mm.html)
@@ -89,7 +89,13 @@ Here is the video how this revamped radio works now:
 
 - [Arduino IDE](https://www.arduino.cc/en/Main/Software)
 - [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48) - import this library to your poject
-- [Radio FM TEA5767 library](https://github.com/mroger/TEA5767) - import this library to your poject
+- [Radio library supporting RDA5807M & TEA5767 plus SI4703/5](https://github.com/mathertel/Radio.git) - import this library to your poject
+
+There is a legacy branch that used [TEA5767](https://github.com/mroger/TEA5767) library [here](https://github.com/pskowronek/unitra-fm-radio-arduino/tree/TEA5767_library). Pros & Cons of this library:
+- less dynamic memory used
+- in my setup it caused sound interruptions while getting the signal information from the module
+- uses floats for frequency adjustments which made potentiometer adjustments very picky
+- RDA5807m worked in TEA compatibility mode with no RDS support
 
 ## Circuit
 
@@ -102,10 +108,10 @@ wirings to:
 - control LCD brightness - connect 8-LED pin of LCD to digital pin D3 of arduino
 - to quickly adjust to predefined stations using rotary switch - connect arduino's analog pin A1 to main pin of rotary switch and  between position pins solder
 use resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive
-- in case of RDA5807m you must power it with 3.3V which you can take it directly from Arduino 3.3V PIN
+- **in case of RDA5807m you must power it with 3.3V which you can take it directly from Arduino 3.3V PIN**
 
-To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner - take a look at datasheet and simply connect GND to negative, INPUT connect
-thru the switch embeded into potentiometer and finally use OUTPUT to power all the stuff. To have stable 5V place 220uF capacitor between OUTPUT and GND.
+To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner (refer to its datasheet) - simply connect GND to negative, INPUT connect
+thru the switch embedded into potentiometer and finally use OUTPUT to power all the stuff. To have stable 5V place 220uF capacitor between OUTPUT and GND (watch out for polarity!).
 
 ## License
 
