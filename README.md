@@ -5,6 +5,9 @@ _Language versions:_\
 [![FR](https://github.com/pskowronek/unitra-fm-radio-arduino/raw/master/www/flags/lang-FR.png)](https://translate.googleusercontent.com/translate_c?sl=en&tl=fr&u=https://github.com/pskowronek/unitra-fm-radio-arduino)
 [![ES](https://github.com/pskowronek/unitra-fm-radio-arduino/raw/master/www/flags/lang-ES.png)](https://translate.googleusercontent.com/translate_c?sl=en&tl=es&u=https://github.com/pskowronek/unitra-fm-radio-arduino)
 
+
+**WARNING: This is a legacy branch that uses [TEA5767 library by _mroger_](https://github.com/mroger/TEA5767)**
+
 # Unitra ANIA R-612 FM Radio powered by Arduino & FM module w/ Nokia 5110 display 
 
 ## A background 
@@ -75,7 +78,7 @@ Here is the video how this revamped radio works now:
   - be careful about soldering and voltage (requires 3.3V - take power from Arduino 3.3V)
   - has better performance than integrated board with TEA5767 - less inteferences from weaker stations
   - can work in TEA5767 compatibility mode (one can still use the same library for both)
-  - looks like it has RDS support (but need to use non-TEA mode and different [library](https://github.com/mathertel/Radio)) TBD
+  - looks like it has RDS support (but need to use non-TEA mode and different [library](https://github.com/mathertel/Radio) - see the master branch)
 - [Nokia 5110 LCD display](https://www.aliexpress.com/item/High-Quality-8448-84x84-LCD-Module-blue-backlight-adapter-PCB-for-Nokia-5110-for-Arduino/32614334972.html)
 - [PAM8403 amp (I use only one channel, since the radio has only one speaker)](https://www.aliexpress.com/item/PAM8403-Super-Mini-Digital-Amplifier-Board-2-3W-Class-D-Digital-2-5V-To-5V-Power/1822706737.html)
 - [Rotary switch 4 position](https://botland.com.pl/en/przelaczniik-obrotowe/6163-rotary-switch-4-positions-2-circuits-30mm.html)
