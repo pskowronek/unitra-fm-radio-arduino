@@ -27,24 +27,24 @@ I started the project to revamp the radio with Arduino + TEA5767 or RDA5807m FM 
 ## The project
 
 ### The Aim
-The aim was to keep the orginal look&feel of the radio as much as possible. So, I kept the volume potentiometer working also as a power-on switch.
-The analog feeling of tunning along with freqeuncy indicator moving up&down had to be kept working (eventhough the scale is not relevant anymore due to OIRT -> CCIR transition).
+The aim was to keep the original look&feel of the radio as much as possible. So, I kept the volume potentiometer working also as a power-on switch.
+The analog feeling of tuning along with frequency indicator moving up&down had to be kept working (even though the scale is not relevant anymore due to OIRT -> CCIR transition).
 I could use rotary encoder for this but I felt that co-ordination with analog indicator may get lost so I decided to use rotary potentiometer
-which of course is not so accurate for fine tunning, plus the influence of temperature and humidity (wire connecting
-analog indicator) doesn't help. But, it still gives the oldschool feedback, yo! To avoid madness in the household I decided to convert the band switch
-to do something usefull i.e. to tune into 3 preconfigured frequencies, only the first position allows for free tunning.
+which of course is not so accurate for fine tuning, plus the influence of temperature and humidity (wire connecting
+analog indicator) doesn't help. But, it still gives the old-school feedback, yo! To avoid madness in the household I decided to convert the band switch
+to do something useful i.e. to tune into 3 preconfigured frequencies, only the first position allows for free tuning.
 
 ### The Feedback
 To get any feedback what's the current frequency I decided to implant Nokia 5110 display and which was hidden under the scale.
-Its illumination automatically fades out when tunning is over, so it doesn't destroy the look so much. The LCD may also display the name
+Its illumination automatically fades out when tuning is over, so it doesn't destroy the look so much. The LCD may also display the name
 of the radio station, but since the FM module I used doesn't provide RDS readings the radio station name is taken from
-the list of predefined stations. This list is alsoe being used to automatically fine-tune to exact frequency.
+the list of predefined stations. This list is also being used to automatically fine-tune to exact frequency.
 The LCD display additionally displays the signal level and mono/stereo status.
 
 ### The Power Source
 The radio is powered by 5x AA batteries consuming around ~56mA. Sadly, I didn't measure what was the original power consumption :/
-The circuit for 230V has been removed (you don't want that functionality in the bathroom, right?), eventhough it could be left as it was -
-the LDO could have been be easily connected to the existing graetz bridge after transformer.
+The circuit for 230V has been removed (you don't want that functionality in the bathroom, right?), even though it could be left as it was -
+the LDO could have been be easily connected to the existing Graetz bridge after transformer.
 
 
 ## Photos
@@ -73,7 +73,7 @@ Here is the video how this revamped radio works now:
   or alternatively (and I prefer this module):
 - [RDA5807m FM module](http://www.aliexpress.com/af/RDA5807m.html)
   - be careful about soldering and voltage (requires 3.3V - take power from Arduino 3.3V)
-  - has better performance than integrated board with TEA5767 - less inteferences from weaker stations
+  - has better performance than integrated board with TEA5767 - less interferences from weaker stations
   - can work in TEA5767 compatibility mode (see legacy [branch](https://github.com/pskowronek/unitra-fm-radio-arduino/tree/TEA5767_library))
   - it has a nice RDS support
 - [Nokia 5110 LCD display](https://www.aliexpress.com/item/High-Quality-8448-84x84-LCD-Module-blue-backlight-adapter-PCB-for-Nokia-5110-for-Arduino/32614334972.html)
@@ -88,8 +88,8 @@ Here is the video how this revamped radio works now:
 ### Software
 
 - [Arduino IDE](https://www.arduino.cc/en/Main/Software)
-- [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48) - import this library to your poject
-- [Radio library supporting RDA5807M & TEA5767 plus SI4703/5](https://github.com/mathertel/Radio.git) - import this library to your poject
+- [Nokia 5110 library](http://www.rinkydinkelectronics.com/library.php?id=48) - import this library to your project
+- [Radio library supporting RDA5807M & TEA5767 plus SI4703/5](https://github.com/mathertel/Radio.git) - import this library to your project
 
 There is a legacy branch that used [TEA5767](https://github.com/mroger/TEA5767) library [here](https://github.com/pskowronek/unitra-fm-radio-arduino/tree/TEA5767_library). Pros & Cons of this library:
 - less dynamic memory used
@@ -101,16 +101,17 @@ There is a legacy branch that used [TEA5767](https://github.com/mroger/TEA5767) 
 
 Of course to do it right I should have designed a custom circuit board, but since I wanted to play around and have some freedom to
 add new features I used universal prototyping circuit boards and everything was connected using jumpers (I guess I spent more on them
-than on the arduino and modules <sic!>) and a bit of hot glue :) 
+than on the Arduino and modules <sic!>) and a bit of hot glue :) 
 
 The connecting scheme is mostly the same as on [Nick's](http://educ8s.tv/arduino-fm-radio-project) project with some additional
 wirings to:
-- control LCD brightness - connect 8-LED pin of LCD to digital pin D3 of arduino
-- to quickly adjust to predefined stations using rotary switch - connect arduino's analog pin A1 to main pin of rotary switch and  between position pins solder
+- control LCD brightness - connect 8-LED pin of LCD to digital pin D3 of Arduino
+- to quickly adjust to predefined stations using rotary switch - connect Arduino's analog pin A1 to main pin of rotary switch and  between position pins solder
 use resistors (220ohm) to build a voltage ladder then connect the first pin to negative and the last one to positive
-- **in case of RDA5807m you must power it with 3.3V which you can take it directly from Arduino 3.3V PIN**
+- **in case of RDA5807m you must power it with 3.3V which you can take it directly from Arduino 3.3V PIN, alternatively add low-pass filter (60ohm + 110uF) to drop
+voltage from 5V to 3.3V and provide less noisy power supply for FM module**
 
-To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner (refer to its datasheet) - simply connect GND to negative, INPUT connect
+To provide 5V power out of the 5xAA battery pack use LDO LM1117 in the simplest manner (refer to its data-sheet) - simply connect GND to negative, INPUT connect
 thru the switch embedded into potentiometer and finally use OUTPUT to power all the stuff. To have stable 5V place 220uF capacitor between OUTPUT and GND (watch out for polarity!).
 
 ## License
